@@ -4,8 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>UW Student Portal (training app)</title>
+<!-- [A2 FIX: Content Security Policy] Restricts scripts to self, preventing external script injection -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';">
 <link rel="stylesheet" href="style.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+<!-- [FIX 6: Removed old jQuery CDN script] The app uses vanilla JS. Old jQuery has known vulnerabilities. -->
 </head>
 <body>
 <header><h1>UW Student Portal</h1><p class="note">Training app. Fake data only. Do not enter real passwords.</p></header>
@@ -38,7 +40,8 @@
     <ul id="userList"></ul>
   </section>
 
-  <p><a href="https://example.com/fee-policy" target="_blank">Fee policy (external)</a></p>
+  <!-- [FIX 6: Secured external link] Added rel="noopener noreferrer" to prevent tab-nabbing attacks -->
+  <p><a href="https://example.com/fee-policy" target="_blank" rel="noopener noreferrer">Fee policy (external)</a></p>
 </section>
 </main>
 <script src="app.js"></script>

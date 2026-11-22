@@ -54,8 +54,21 @@ function verifyLogin(email, inputPass) {
   return isValid ? USERS.find(u => u.email === email) : null;
 }
 
+// [A2 FIX: Login Throttling Variables]
+// Tracks failed login attempts and sets a lockout time to prevent brute-force attacks.
+let failedAttempts = 0;
+let lockoutUntil = 0;
+
 $("loginForm").addEventListener("submit", (e) => {
   e.preventDefault();
+  
+  // [A2 FIX: Login Throttling Check]
+  // If the current time is before the lockout time, deny the login attempt.
+  if (Date.now() < lockoutUntil) {
+    $("loginMsg").textContent = "Too many failed attempts. Please wait 30 seconds.";
+    return;
+  }
+
   const email = $("email").value;
   const pw = $("password").value;
   
@@ -63,12 +76,23 @@ $("loginForm").addEventListener("submit", (e) => {
   const u = verifyLogin(email, pw);
   
   if (!u) {
-    // [FIX V-04: DOM XSS in Login Error]
-    // Real-world: Use textContent, never innerHTML with user input.
-    // Reference: OWASP DOM XSS Prevention Cheat Sheet
-    $("loginMsg").textContent = "Login failed for " + email;
+    // [A2 FIX: Increment failed attempts]
+    failedAttempts++;
+    if (failedAttempts >= 3) {
+      // Lock account for 30 seconds
+      lockoutUntil = Date.now() + 30000; 
+      $("loginMsg").textContent = "Account locked for 30 seconds due to 3 failed attempts.";
+    } else {
+      // [FIX V-04: DOM XSS in Login Error]
+      // Real-world: Use textContent, never innerHTML with user input.
+      // Reference: OWASP DOM XSS Prevention Cheat Sheet
+      $("loginMsg").textContent = "Login failed for " + email;
+    }
     return;
   }
+  
+  // Reset attempts on successful login
+  failedAttempts = 0;
   
   // [FIX V-06: Insecure Session Management]
   // Removed role and cnic. The server should determine privileges, not the client.
@@ -125,15 +149,14 @@ function render() {
   if (!s) return;
   
   // [FIX V-03: DOM XSS in Welcome Message]
+  // Using textContent instead of innerHTML to prevent URL parameter injection.
   $("welcome").textContent = "Welcome, " + (params.get("name") || s.name);
   
   if (params.get("id")) showResult(params.get("id"));
   
   // [FIX V-06: Privilege Escalation]
-  // Real-world: Admin panel visibility should be determined by a server response,
-  // not by parsing client-side storage. Since we removed role from the session,
-  // the admin panel cannot be rendered based on client data.
-  // In production, the server would return an "isAdmin" flag after verifying the session cookie.
+  // Real-world: Admin panel visibility should be determined by a server response.
+  // Since we removed role from the session, the admin panel cannot be rendered based on client data.
   // Reference: OWASP Session Management Cheat Sheet
 }
 render();

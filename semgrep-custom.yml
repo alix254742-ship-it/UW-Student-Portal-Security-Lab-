@@ -1,0 +1,6 @@
+rules:
+  - id: detect-eval
+    languages: [javascript]
+    severity: ERROR
+    message: Do not use eval() as it can lead to code injection.
+    pattern: eval(...)
